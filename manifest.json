@@ -1,0 +1,11 @@
+{
+  "domain": "sheffield_bins",
+  "name": "Sheffield Bin Collections",
+  "version": "1.0.0",
+  "documentation": "https://github.com/st3nic/bin_collections_sheffield",
+  "requirements": ["requests"],
+  "dependencies": [],
+  "codeowners": ["@st3nic"],
+  "config_flow": true,
+  "iot_class": "cloud_polling"
+}

@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sheffield Bin Collections",
+        "description": "Enter your UPRN",
+        "data": {
+          "uprn": "UPRN"
+        }
+      }
+    }
+  }
+}
