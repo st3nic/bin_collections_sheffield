@@ -5,16 +5,22 @@ This custom component was written after the UK Bin Collection Data https://githu
 
 Thanks to Tom Whiteley https://github.com/Tom-Whi for finding the APi endpoint which was still working.
 
-Currently i cannot find a way to get your UPRN unless you have it from the previous integration, i will update this page if i find a way to get your UPRN.
+Thanks to https://github.com/i3lade4life for making me aware of the UPRN website.
+
 
 To Use follow the steps below:
 
-1. Install this as a custom repository in HACS
+1. Go to https://uprn.uk/ and enter your postcode, select your address and copy the UPRN number provided.
 
-2. Search for Sheffield bins and download from HACS
+2. Install this repo as a custom repository in HACS using https://github.com/st3nic/bin_collections_sheffield
 
-3. Home Assiatant will want a restart, afterwards go to settings > Devices & services > click Add Integration and search for sheffield bins.
+3. Search for Sheffield bins and download from HACS
 
-4. Enter you UPRN from the old integration.
+4. Home Assiatant will want a restart, afterwards go to settings > Devices & services > click Add Integration and search for sheffield bins.
 
-5. Add the sensors to your dashboard.
+5. Enter you UPRN which you copied in step one.
+
+6. Add the sensors to your dashboard.
+
+
+Warning!! We have no idea if the API will be switched off now the council has a new website, fingers crossed its left operational.
