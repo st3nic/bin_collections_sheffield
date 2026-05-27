@@ -8,6 +8,7 @@ BIN_TYPES = [
     "Black Bin",
     "Blue Bin",
     "Brown Bin",
+    "Green Bin",
 ]
 
 
