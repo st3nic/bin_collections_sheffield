@@ -1,7 +1,7 @@
 {
   "domain": "sheffield_bins",
   "name": "Sheffield Bin Collections",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "documentation": "https://github.com/st3nic/bin_collections_sheffield",
   "requirements": ["requests"],
   "dependencies": [],

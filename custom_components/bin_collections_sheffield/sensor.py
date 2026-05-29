@@ -41,8 +41,10 @@ class SheffieldBinSensor(CoordinatorEntity, SensorEntity):
 
         if not data:
             return None
-
-        return data["days_until"]
+        elif data["days_until"] == 0:
+            return "Today"
+        else:
+            return data["days_until"]
 
     @property
     def extra_state_attributes(self):
@@ -61,4 +63,11 @@ class SheffieldBinSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def unit_of_measurement(self):
-        return "days"
+        data = self.coordinator.data.get(self.bin_type)
+        
+        if data["days_until"] > 1:
+            return "days"
+        elif data["days_until"] == 1:
+            return "day"
+        elif data["days_until"] == 0:
+            return " "
