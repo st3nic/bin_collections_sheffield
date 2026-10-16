@@ -1,73 +1,155 @@
-from homeassistant.components.sensor import SensorEntity
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import date
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+)
+from homeassistant.const import UnitOfTime
+from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util, slugify
 
-from .const import DOMAIN
+from .const import DOMAIN, MANUFACTURER
+from .coordinator import BinService, SheffieldBinsCoordinator
 
 
-BIN_TYPES = [
-    "Black Bin",
-    "Blue Bin",
-    "Brown Bin",
-    "Green Bin",
-]
+def _days_until(next_date: date | None, today: date) -> int | None:
+    if next_date is None:
+        return None
+
+    return (next_date - today).days
+
+
+def _friendly(next_date: date | None, today: date) -> str | None:
+    days = _days_until(next_date, today)
+
+    if days is None:
+        return None
+    elif days == 0:
+        return "Today"
+    elif days == 1:
+        return "Tomorrow"
+    else:
+        return f"In {days} days"
+
+
+@dataclass(frozen=True, kw_only=True)
+class SheffieldBinSensorDescription(SensorEntityDescription):
+    value_fn: Callable[[date | None, date], str | int | date | None]
+
+
+SENSORS = (
+    # Keeps the "collection" key so pre-2.0.0 sensors migrate onto it.
+    SheffieldBinSensorDescription(
+        key="collection",
+        name="Collection",
+        icon="mdi:trash-can",
+        value_fn=_friendly,
+    ),
+    SheffieldBinSensorDescription(
+        key="days_until",
+        name="Days until",
+        icon="mdi:calendar-clock",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=_days_until,
+    ),
+    SheffieldBinSensorDescription(
+        key="next_collection",
+        name="Next collection",
+        device_class=SensorDeviceClass.DATE,
+        value_fn=lambda next_date, today: next_date,
+    ),
+)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: SheffieldBinsCoordinator = entry.runtime_data
 
-    entities = []
+    known_bins: set[str] = set()
 
-    for bin_type in BIN_TYPES:
-        entities.append(
-            SheffieldBinSensor(coordinator, bin_type)
+    # Only create sensors for bins the council actually collects from this
+    # address, and pick up any new ones that appear in a later update.
+    @callback
+    def _async_add_new_bins():
+        new_bins = [name for name in coordinator.data if name not in known_bins]
+
+        if not new_bins:
+            return
+
+        known_bins.update(new_bins)
+
+        async_add_entities(
+            SheffieldBinSensor(coordinator, bin_name, description)
+            for bin_name in new_bins
+            for description in SENSORS
         )
 
-    async_add_entities(entities)
+    _async_add_new_bins()
+
+    entry.async_on_unload(coordinator.async_add_listener(_async_add_new_bins))
 
 
-class SheffieldBinSensor(CoordinatorEntity, SensorEntity):
-    def __init__(self, coordinator, bin_type):
+class SheffieldBinSensor(CoordinatorEntity[SheffieldBinsCoordinator], SensorEntity):
+    _attr_has_entity_name = True
+
+    entity_description: SheffieldBinSensorDescription
+
+    def __init__(
+        self,
+        coordinator: SheffieldBinsCoordinator,
+        bin_name: str,
+        description: SheffieldBinSensorDescription,
+    ):
         super().__init__(coordinator)
 
-        self.bin_type = bin_type
+        self.entity_description = description
+        self.bin_name = bin_name
 
-        self._attr_name = f"{bin_type} Collection"
-        self._attr_unique_id = f"sheffield_bins_{bin_type.lower().replace(' ', '_')}"
-        self._attr_icon = "mdi:trash-can"
+        bin_slug = slugify(bin_name)
+
+        self._attr_unique_id = f"{coordinator.uprn}_{bin_slug}_{description.key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"{coordinator.uprn}_{bin_slug}")},
+            name=bin_name,
+            manufacturer=MANUFACTURER,
+            entry_type=DeviceEntryType.SERVICE,
+        )
+
+    @property
+    def _service(self) -> BinService | None:
+        return self.coordinator.data.get(self.bin_name)
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._service is not None
 
     @property
     def native_value(self):
-        data = self.coordinator.data.get(self.bin_type)
+        today = dt_util.now().date()
 
-        if not data:
-            return None
-        elif data["days_until"] == 0:
-            return "Today"
-        else:
-            return data["days_until"]
+        return self.entity_description.value_fn(
+            self._service.next_collection(today), today
+        )
 
     @property
     def extra_state_attributes(self):
-        data = self.coordinator.data.get(self.bin_type)
+        if self.entity_description.key != "collection":
+            return None
 
-        if not data:
-            return {}
+        service = self._service
+        today = dt_util.now().date()
+        next_date = service.next_collection(today)
 
         return {
-            "next_collection_date": data["date"],
-            "bin_type": self.bin_type,
-            "days_until": data["days_until"],
-            "service_group": data["group"],
-            "color": data["color"],
+            "next_collection_date": next_date.isoformat() if next_date else None,
+            "bin_type": self.bin_name,
+            "days_until": _days_until(next_date, today),
+            "service_group": service.group,
+            "color": service.color,
         }
-
-    @property
-    def unit_of_measurement(self):
-        data = self.coordinator.data.get(self.bin_type)
-        
-        if data["days_until"] > 1:
-            return "days"
-        elif data["days_until"] == 1:
-            return "day"
-        elif data["days_until"] == 0:
-            return " "
