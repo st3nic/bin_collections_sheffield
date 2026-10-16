@@ -17,5 +17,16 @@
     "abort": {
       "already_configured": "This address is already set up."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Sheffield Bin Collections",
+        "description": "\"Bins out tonight\" turns on at this time the evening before a collection, and off at 7am on collection day.",
+        "data": {
+          "reminder_time": "Reminder time"
+        }
+      }
+    }
   }
 }
