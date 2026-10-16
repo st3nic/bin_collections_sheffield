@@ -7,7 +7,7 @@ from homeassistant.helpers.event import async_track_time_change
 from .const import CONF_UPRN
 from .coordinator import SheffieldBinsCoordinator
 
-PLATFORMS = [Platform.CALENDAR, Platform.SENSOR]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.CALENDAR, Platform.SENSOR]
 
 LEGACY_UNIQUE_ID_PREFIX = "sheffield_bins_"
 

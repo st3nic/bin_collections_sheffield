@@ -38,6 +38,28 @@ There is also a `calendar.bin_collections` calendar with every collection as an 
 The sensors update at midnight, so "Tomorrow" changes to "Today" straight away.
 
 
+## Bins out tonight
+
+`binary_sensor.bins_out_tonight` turns on at 6pm the evening before any collection and off at 7am on collection day. Its `bins` attribute lists which bins are due, e.g. `["Black Bin", "Brown Bin"]`.
+
+To change the 6pm time, go to Settings > Devices & services > Sheffield Bin Collections and click Configure.
+
+Example reminder automation:
+
+```yaml
+automation:
+  - alias: Put the bins out
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.bins_out_tonight
+        to: "on"
+    actions:
+      - action: notify.notify
+        data:
+          message: "Put out the {{ state_attr('binary_sensor.bins_out_tonight', 'bins') | join(' and ') }} tonight"
+```
+
+
 ## Upgrading from 1.x
 
 In 1.x the `Collection` sensor showed a number of days, and `Today` on collection day. It now always shows text (`Today`, `Tomorrow`, `In 5 days`), so any automation that compares it with a number should use the new `Days until` sensor instead. Existing entity IDs are kept.
