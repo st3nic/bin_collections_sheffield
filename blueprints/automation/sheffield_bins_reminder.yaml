@@ -1,0 +1,70 @@
+blueprint:
+  name: Sheffield bins reminder
+  description: >-
+    Send a notification when it's time to put the bins out, using the
+    "Bins out tonight" sensor from the Sheffield Bin Collections integration.
+    The message lists every bin due, e.g. "Put out the Black Bin and Brown Bin tonight".
+    The time it fires is set in the integration's Configure options (6pm by default).
+  domain: automation
+  source_url: https://github.com/st3nic/bin_collections_sheffield/blob/master/blueprints/automation/sheffield_bins_reminder.yaml
+  author: st3nic
+  input:
+    bins_sensor:
+      name: Bins out tonight sensor
+      selector:
+        entity:
+          filter:
+            integration: sheffield_bins
+            domain: binary_sensor
+    notify_device:
+      name: Device to notify
+      description: Device needs to run the official Home Assistant app to receive notifications.
+      selector:
+        device:
+          filter:
+            integration: mobile_app
+    title:
+      name: Title
+      default: "Bin day tomorrow"
+      selector:
+        text:
+    message:
+      name: Message
+      description: "{{ bins }} is replaced with the bins due, e.g. Black Bin and Brown Bin."
+      default: "Put out the {{ bins }} tonight"
+      selector:
+        text:
+    extra_actions:
+      name: Extra actions
+      description: Optional actions to run as well, such as making an announcement on a speaker or flashing a light.
+      default: []
+      selector:
+        action:
+
+triggers:
+  - trigger: state
+    entity_id: !input bins_sensor
+    from: "off"
+    to: "on"
+
+variables:
+  bins_sensor: !input bins_sensor
+  bins_list: "{{ state_attr(bins_sensor, 'bins') or [] }}"
+  bins: >-
+    {% if bins_list | length > 1 %}
+      {{ bins_list[:-1] | join(', ') }} and {{ bins_list[-1] }}
+    {% else %}
+      {{ bins_list | join }}
+    {% endif %}
+
+actions:
+  - alias: "Send the bins reminder"
+    domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    title: !input title
+    message: !input message
+  - alias: "Run any extra actions"
+    choose: []
+    default: !input extra_actions
+mode: single

@@ -44,7 +44,19 @@ The sensors update at midnight, so "Tomorrow" changes to "Today" straight away.
 
 To change the 6pm time, go to Settings > Devices & services > Sheffield Bin Collections and click Configure.
 
-Example reminder automation:
+
+## Reminder blueprint
+
+The easiest way to get a reminder is the blueprint. It sends a notification to your phone, e.g. "Put out the Black Bin and Brown Bin tonight", and can also run extra actions such as a speaker announcement.
+
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fst3nic%2Fbin_collections_sheffield%2Fblob%2Fmaster%2Fblueprints%2Fautomation%2Fsheffield_bins_reminder.yaml)
+
+Or go to Settings > Automations & scenes > Blueprints > Import blueprint and paste:
+`https://github.com/st3nic/bin_collections_sheffield/blob/master/blueprints/automation/sheffield_bins_reminder.yaml`
+
+Then click the blueprint, choose your Bins out tonight sensor and your phone, and save.
+
+If you'd rather write the automation yourself, here is an example:
 
 ```yaml
 automation:
