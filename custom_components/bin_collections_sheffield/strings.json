@@ -3,11 +3,19 @@
     "step": {
       "user": {
         "title": "Sheffield Bin Collections",
-        "description": "Enter your UPRN",
+        "description": "Enter your UPRN. You can find it at https://uprn.uk/ by searching for your postcode.",
         "data": {
           "uprn": "UPRN"
         }
       }
+    },
+    "error": {
+      "invalid_uprn": "A UPRN should only contain numbers.",
+      "no_collections": "Sheffield City Council has no bin collections for this UPRN. Check it is the right address.",
+      "cannot_connect": "Couldn't get collection data from Sheffield City Council. Check the UPRN and try again."
+    },
+    "abort": {
+      "already_configured": "This address is already set up."
     }
   }
 }
